@@ -36,6 +36,7 @@ with warnings.catch_warnings(action="ignore"):
 
 # fxn()
 
+
 class Bot:
     chat_history = []
     answer = ""
@@ -44,34 +45,42 @@ class Bot:
 
     def __init__(self):
 
-#        self.memory = ConversationBufferMemory()
-#        self.prompt_template = PromptTemplate()
-#        self.retrieval_qa = RetrievalQA()
-#        self.prompt = PromptTemplate()
-        self.embeddings = JinaEmbeddings(jina_api_key=JINA_EMBED_KEY, model_name="jina-embeddings-v2-base-en")
-        self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=150)
+        #        self.memory = ConversationBufferMemory()
+        #        self.prompt_template = PromptTemplate()
+        #        self.retrieval_qa = RetrievalQA()
+        #        self.prompt = PromptTemplate()
+        self.embeddings = JinaEmbeddings(
+            jina_api_key=JINA_EMBED_KEY, model_name="jina-embeddings-v2-base-en"
+        )
+        self.text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1500, chunk_overlap=150
+        )
         self.chroma = None
         self.llm = None
         self.QA_CHAIN_PROMPT = None
         self.vectordb = None
-#        self.chroma = Chroma.from_documents(documents=[], embedding=self.embeddings, persist_directory="chroma4/")
-#        self.chroma.persist()
+        #        self.chroma = Chroma.from_documents(documents=[], embedding=self.embeddings, persist_directory="chroma4/")
+        #        self.chroma.persist()
         self.select_model()
-    
-    
-    
 
-    def load_PDF_doc(self, doc_path:str):
-        loaders = [PyPDFLoader(doc_path),]
+    def load_PDF_doc(self, doc_path: str):
+        loaders = [
+            PyPDFLoader(doc_path),
+        ]
         docs = []
         for loader in loaders:
             docs.extend(loader.load())
-        self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=150)
+        self.text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1500, chunk_overlap=150
+        )
         self.splits = self.text_splitter.split_documents(docs)
         persist_directory = "chroma4/"
-        self.vectordb = Chroma.from_documents(documents=self.splits, embedding=self.embeddings, persist_directory=persist_directory)
+        self.vectordb = Chroma.from_documents(
+            documents=self.splits,
+            embedding=self.embeddings,
+            persist_directory=persist_directory,
+        )
         self.vectordb.persist()
-
 
     def select_model(self):
         current_date = datetime.datetime.now().date()
@@ -87,35 +96,35 @@ class Bot:
         # {context}
         # Question: {question}
         # Helpful Answer:"""
-        self.QA_CHAIN_PROMPT = PromptTemplate( input_variables=["context", "question"], template=template,)
+        self.QA_CHAIN_PROMPT = PromptTemplate(
+            input_variables=["context", "question"],
+            template=template,
+        )
 
     def retreval(self):
         self.llm = ChatOpenAI(model_name=self.llm_name, temperature=0)
-        qa_chain = RetrievalQA.from_chain_type(
-            self.llm,
-            retriever=self.vectordb.as_retriever(),
-            return_source_documents=True,
-            chain_type_kwargs={"prompt": self.QA_CHAIN_PROMPT},
-        )
+        # qa_chain = RetrievalQA.from_chain_type(
+        #     self.llm,
+        #     retriever=self.vectordb.as_retriever(),
+        #     return_source_documents=True,
+        #     chain_type_kwargs={"prompt": self.QA_CHAIN_PROMPT},
+        # )
 
         # question = "Is probability a class topic?"
         # result = qa_chain({"query": question})
         # print(result["result"])
 
-
-
-        memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-
+        memory = ConversationBufferMemory(
+            memory_key="chat_history", return_messages=True
+        )
 
         # ### ConversationalRetrievalChain
         from langchain.chains import ConversationalRetrievalChain
 
         retriever = self.vectordb.as_retriever()
-        self.qa = ConversationalRetrievalChain.from_llm(self.llm, retriever=retriever, memory=memory)
-
-
-
-
+        self.qa = ConversationalRetrievalChain.from_llm(
+            self.llm, retriever=retriever, memory=memory
+        )
 
     def chat(self, query: str):
         result = self.qa({"question": query, "chat_history": Bot.chat_history})
@@ -125,4 +134,3 @@ class Bot:
         answer = result["answer"]
         print(answer)
         return answer
-
