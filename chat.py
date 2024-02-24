@@ -37,7 +37,13 @@ with warnings.catch_warnings(action="ignore"):
 # fxn()
 
 class Bot:
+    chat_history = []
+    answer = ""
+    db_query = ""
+    db_response = []
+
     def __init__(self):
+
 #        self.memory = ConversationBufferMemory()
 #        self.prompt_template = PromptTemplate()
 #        self.retrieval_qa = RetrievalQA()
@@ -105,25 +111,18 @@ class Bot:
         from langchain.chains import ConversationalRetrievalChain
 
         retriever = self.vectordb.as_retriever()
-        qa = ConversationalRetrievalChain.from_llm(self.llm, retriever=retriever, memory=memory)
-
-
-# chat_history = []
-# answer = ""
-# db_query = ""
-# db_response = []
+        self.qa = ConversationalRetrievalChain.from_llm(self.llm, retriever=retriever, memory=memory)
 
 
 
-# def chat(query: str):
-#     result = qa({"question": query, "chat_history": chat_history})
-#     chat_history.extend([(query, result["answer"])])
-#     #   db_query = result["generated_question"]
-#     #   db_response = result["source_documents"]
-#     answer = result["answer"]
-#     print(answer)
-#     return answer
 
-bot = Bot()
-bot.load_PDF_doc("documents/temp.pdf")
-bot.retreval()
+
+    def chat(self, query: str):
+        result = self.qa({"question": query, "chat_history": Bot.chat_history})
+        Bot.chat_history.extend([(query, result["answer"])])
+        #   db_query = result["generated_question"]
+        #   db_response = result["source_documents"]
+        answer = result["answer"]
+        print(answer)
+        return answer
+

@@ -1,11 +1,7 @@
-# from codes import chat, load_PDF_doc
+from chat import Bot
 
-# # query = "what is this document?"
-
-# doc = "documents/temp.pdf"
-# load_PDF_doc(doc)
-
-
-# query = "what they say about 741 IC?"
-# chat(query)
-
+bot = Bot()
+bot.load_PDF_doc("documents/temp.pdf")
+bot.retreval()
+query = "what is this document?"
+bot.chat(query)
