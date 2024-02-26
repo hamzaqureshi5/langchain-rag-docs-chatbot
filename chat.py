@@ -14,6 +14,7 @@ from langchain.vectorstores import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import JinaEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.chains import ConversationalRetrievalChain
 
 _ = load_dotenv(find_dotenv())  # read local .env file
 
@@ -118,8 +119,6 @@ class Bot:
             memory_key="chat_history", return_messages=True
         )
 
-        # ### ConversationalRetrievalChain
-        from langchain.chains import ConversationalRetrievalChain
 
         retriever = self.vectordb.as_retriever()
         self.qa = ConversationalRetrievalChain.from_llm(
